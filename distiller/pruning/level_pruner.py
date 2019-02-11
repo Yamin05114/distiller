@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+# 按比例进行裁剪: 就是找到按比例截取的weight的大小，再按照大小进行裁剪
+
 
 import torch
 from .pruner import _ParameterPruner
@@ -20,6 +22,7 @@ import distiller
 
 class SparsityLevelParameterPruner(_ParameterPruner):
     """Prune to an exact pruning level specification.
+    Pruning level 指的是sparsity，也就是0的比例,
 
     This pruner is very similar to MagnitudeParameterPruner, but instead of
     specifying an absolute threshold for pruning, you specify a target sparsity
