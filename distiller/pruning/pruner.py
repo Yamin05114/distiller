@@ -18,7 +18,7 @@ import torch
 import distiller
 
 class _ParameterPruner(object):
-    """Base class for all pruners.
+    """Base class for all pruners.纯虚类
 
     Arguments:
         name: pruner name is used mainly for debugging.
