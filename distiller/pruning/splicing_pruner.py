@@ -62,7 +62,8 @@ class SplicingPruner(_ParameterPruner):
             starting_epoch = meta['starting_epoch']
             current_epoch = meta['current_epoch']
             sensitivity *= (current_epoch - starting_epoch) * self.sensitivity_multiplier + 1
-
+        
+        # 高低门限靠分布的标准差来确定
         threshold_low = (param._mean + param._std * sensitivity) * self.low_thresh_mult
         threshold_hi = (param._mean + param._std * sensitivity) * self.hi_thresh_mult
 
@@ -81,8 +82,11 @@ class SplicingPruner(_ParameterPruner):
         # We followed the example implementation from Yiwen Guo in Caffe, and used the
         # weight tensor's starting mean and std.
         # This is very similar to the initialization performed by distiller.SensitivityPruner.
-
+        
         masked_weights = param.mul(zeros_mask_dict[param_name].mask).abs()
+        # weigts在mask之后，再进一步对较小值归零,其实就是第一种情况
         a = masked_weights.ge(threshold_low)
+        # 区间中间的情况
         b = a & zeros_mask_dict[param_name].mask.type(torch.cuda.ByteTensor)
+        # 大于的情况
         zeros_mask_dict[param_name].mask = (b | masked_weights.ge(threshold_hi)).type(torch.cuda.FloatTensor)
