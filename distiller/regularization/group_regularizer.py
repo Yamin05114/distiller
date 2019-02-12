@@ -90,21 +90,24 @@ class GroupLassoRegularizer(distiller.GroupThresholdMixin, _Regularizer):
         strength = self.reg_regims[param_name][0]
         zeros_mask_dict[param_name].mask = self.group_threshold_mask(param, group_type, strength, self.threshold_criteria)
         zeros_mask_dict[param_name].is_regularization_mask = True
-
+    
+    # 对group作正则化
     @staticmethod
     def __grouplasso_reg(groups, strength, dim):
         if dim == -1:
             # We only have single group
             return groups.norm(2) * strength
         return groups.norm(2, dim=dim).sum().mul_(strength)
-
+    
+    # 对于一个层进行正则化
     @staticmethod
     def __4d_layerwise_reg(layer_weights, strength, dim=0):
         """Group Lasso with group = 4D weights layer
         """
         assert layer_weights.dim() == 4, "This regularization is only supported for 4D weights"
         return GroupLassoRegularizer.__grouplasso_reg(layer_weights, strength, dim=-1)
-
+    
+    # 
     @staticmethod
     def __3d_filterwise_reg(layer_weights, strength):
         """Group Lasso with group = 3D weights filter
