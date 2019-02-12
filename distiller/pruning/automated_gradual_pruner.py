@@ -47,7 +47,8 @@ class AutomatedGradualPrunerBase(_ParameterPruner):
         freq = meta['frequency']
         span = ((ending_epoch - starting_epoch - 1) // freq) * freq
         assert span > 0
-
+        
+        # 每一次更新mask的sparsity都是通过计算得到的
         target_sparsity = (self.final_sparsity +
                            (self.initial_sparsity-self.final_sparsity) *
                            (1.0 - ((current_epoch-starting_epoch)/span))**3)
@@ -79,6 +80,7 @@ class AutomatedGradualPruner(AutomatedGradualPrunerBase):
         super().set_param_mask(param, param_name, zeros_mask_dict, meta)
 
     def prune_to_target_sparsity(self, param, param_name, zeros_mask_dict, target_sparsity, model=None):
+        # 按照比例进行裁剪
         return SparsityLevelParameterPruner.prune_level(param, param_name, zeros_mask_dict, target_sparsity)
 
 
