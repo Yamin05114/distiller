@@ -23,9 +23,10 @@ class SensitivityPruner(_ParameterPruner):
     Neural Networks" - https://arxiv.org/pdf/1506.02626v3.pdf
 
     I.e.: "The pruning threshold is chosen as a quality parameter multiplied
-    by the standard deviation of a layers weights."
+    by the standard deviation of a layers weights." 可见所有的门限都是根据标准差
     In this code, the "quality parameter" is referred to as "sensitivity" and
-    is based on the values learned from performing sensitivity analysis.
+    is based on the values learned from performing sensitivity analysis. 所以什么
+    是sensitivity analysis需要再看看
 
     Note that this implementation deviates slightly from the algorithm Song Han
     describes in his PhD dissertation, in that the threshold value is set only
