@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 
+# .pruner就是路径内文件
 from .pruner import _ParameterPruner
 from .level_pruner import SparsityLevelParameterPruner
 from .ranked_structures_pruner import *
