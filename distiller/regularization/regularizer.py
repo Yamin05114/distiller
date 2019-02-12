@@ -16,6 +16,8 @@
 
 EPSILON = 1e-8
 
+# regularizer就是计算loss关于正则的那部分
+
 class _Regularizer(object):
     def __init__(self, name, model, reg_regims, threshold_criteria):
         """Regularization base class.
