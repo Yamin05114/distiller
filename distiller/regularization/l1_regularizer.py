@@ -41,11 +41,13 @@ class L1Regularizer(_Regularizer):
         strength = self.reg_regims[param_name]
         zeros_mask_dict[param_name].mask = distiller.threshold_mask(param.data, threshold=strength)
         zeros_mask_dict[param_name].is_regularization_mask = True
-
+    
+    # strength 即使正则化前面的因子
     @staticmethod
     def __add_l1(var, strength):
         return var.abs().sum() * strength
-
+    
+    # reg_regims就是存所有的正则化因子
     @staticmethod
     def __add_l1_all(loss, model, reg_regims):
         for param_name, param in model.named_parameters():
