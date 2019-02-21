@@ -17,6 +17,8 @@
 import torch
 
 
+// saturation 饱和, saturation_val_tensor饱和值 饱和矩阵
+// 就算是一个数，输出也是一个单值矩阵
 def _prep_saturation_val_tensor(sat_val):
     is_scalar = not isinstance(sat_val, torch.Tensor)
     out = torch.tensor(sat_val)
@@ -27,6 +29,7 @@ def _prep_saturation_val_tensor(sat_val):
     return is_scalar, out
 
 
+# 0000 -> 1111, quantiza to 0->n, 什么是对称呢
 def symmetric_linear_quantization_params(num_bits, saturation_val):
     is_scalar, sat_val = _prep_saturation_val_tensor(saturation_val)
 
@@ -43,7 +46,7 @@ def symmetric_linear_quantization_params(num_bits, saturation_val):
     zero_point = torch.zeros_like(scale)
 
     if is_scalar:
-        # If input was scalar, return scalars
+        # If input was scalar, return scalars 只有一个值得矩阵变数字
         return scale.item(), zero_point.item()
     return scale, zero_point
 
@@ -84,6 +87,7 @@ def asymmetric_linear_quantization_params(num_bits, saturation_min, saturation_m
     return scale, zero_point
 
 
+# 给tensor值设置上下限
 def clamp(input, min, max, inplace=False):
     if inplace:
         input.clamp_(min, max)
