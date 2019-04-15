@@ -14,13 +14,17 @@
 # limitations under the License.
 #
 
-"""Tensor thresholding.
+"""
+怎么来做weights的thresholding，这个就是pruning的核心！！
+
+Tensor thresholding.
 
 The code below supports fine-grained tensor thresholding and group-wise thresholding.
 """
 import torch
 
 
+# 直接o比较weights和threshold的大小
 def threshold_mask(weights, threshold):
     """Create a threshold mask for the provided parameter tensor using
     magnitude thresholding.
@@ -34,6 +38,7 @@ def threshold_mask(weights, threshold):
     return torch.gt(torch.abs(weights), threshold).type(weights.type())
 
 
+# group pruning的类
 class GroupThresholdMixin(object):
     """A mixin class to add group thresholding capabilities
 
@@ -43,8 +48,13 @@ class GroupThresholdMixin(object):
         return group_threshold_mask(param, group_type, threshold, threshold_criteria)
 
 
+# group pruning的类的主要方法们
 def group_threshold_binary_map(param, group_type, threshold, threshold_criteria):
-    """Return a threshold mask for the provided parameter and group type.
+    """
+    在方法threshold_policy中已经有了怎么根据weights生成mask
+    这里其实是包装threshold_policy给param做一些预处理，从而可以完成直接输入param
+    
+    Return a threshold mask for the provided parameter and group type.
 
     Args:
         param: The parameter to mask
@@ -57,18 +67,21 @@ def group_threshold_binary_map(param, group_type, threshold, threshold_criteria)
           'Max' thresholds the entire group using the magnitude of the largest
           element in the group.
     """
+    # weights的维度就是3 * 3 * 32 * 64， height * width * in_chan * out_chan 所以是四维
     if group_type == '2D':
         assert param.dim() == 4, "This thresholding is only supported for 4D weights"
         view_2d = param.view(-1, param.size(2) * param.size(3))
         # 1. Determine if the kernel "value" is below the threshold, by creating a 1D
-        #    thresholds tensor with length = #IFMs * # OFMs
+        #    thresholds tensor with length = #IFMs * # OFMs 
+        #    对每一个2D位置做一个prune对应的所有channel都会被删除
         thresholds = torch.Tensor([threshold] * param.size(0) * param.size(1)).to(param.device)
         # 2. Create a binary thresholds mask, where we use the mean of the abs values of the
         #    elements in each channel as the threshold filter.
         # 3. Apply the threshold filter
+        #    生成mask 过程中，所有的 policy 会reduce dim=1 与 threshold 对比
         binary_map = threshold_policy(view_2d, thresholds, threshold_criteria)
         return binary_map
-
+    
     elif group_type == 'Rows':
         assert param.dim() == 2, "This regularization is only supported for 2D weights"
         thresholds = torch.Tensor([threshold] * param.size(0)).to(param.device)
@@ -178,6 +191,7 @@ def group_threshold_mask(param, group_type, threshold, threshold_criteria, binar
         return d.view(param.size(0), param.size(1), param.size(2), param.size(3))
 
 
+# 就是生成mask，通过对比weights policy和threshold的大小来生成mask
 def threshold_policy(weights, thresholds, threshold_criteria, dim=1):
     """
     """
