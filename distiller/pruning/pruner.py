@@ -35,6 +35,7 @@ def threshold_model(model, threshold):
     This function prunes weights only (biases are left untouched).
     """
     for name, p in model.named_parameters():
+       # 当前只支持weights，prune bias 并不make sense。
        if 'weight' in name:
            mask = distiller.threshold_mask(p.data, threshold)
            p.data = p.data.mul_(mask)
