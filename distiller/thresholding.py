@@ -51,8 +51,10 @@ class GroupThresholdMixin(object):
 # group pruning的类的主要方法们
 def group_threshold_binary_map(param, group_type, threshold, threshold_criteria):
     """
-    在方法threshold_policy中已经有了怎么根据weights生成mask
-    这里其实是包装threshold_policy给param做一些预处理，从而可以完成直接输入param
+    在方法threshold_policy中已经有了怎么根据group生成 group mask
+    这里其实是包装threshold_policy给param做一些预处理，生成group！
+    生成方法：weight group的维度变成dim0，剩下的变成dim1
+    从而可以方便的reduce dim1，这样每个group就对应一个值
     
     Return a threshold mask for the provided parameter and group type.
 
@@ -67,7 +69,9 @@ def group_threshold_binary_map(param, group_type, threshold, threshold_criteria)
           'Max' thresholds the entire group using the magnitude of the largest
           element in the group.
     """
-    # weights的维度就是3 * 3 * 32 * 64， height * width * in_chan * out_chan 所以是四维
+    # weights的维度就是64 * 32 * 3 * 3， out_chan * inchan * height * width
+    # out_chan * inchan * height * width => filter num * filter chan * height * width
+    # 所以是四维
     if group_type == '2D':
         assert param.dim() == 4, "This thresholding is only supported for 4D weights"
         view_2d = param.view(-1, param.size(2) * param.size(3))
@@ -191,9 +195,10 @@ def group_threshold_mask(param, group_type, threshold, threshold_criteria, binar
         return d.view(param.size(0), param.size(1), param.size(2), param.size(3))
 
 
-# 就是生成mask，通过对比weights policy和threshold的大小来生成mask
 def threshold_policy(weights, thresholds, threshold_criteria, dim=1):
     """
+    使用某一个policy就会reduce相应group内包含的所有元素成为一个值，这个值和threshhold
+    作对比就会知道这个group到底要不要被prune
     """
     if threshold_criteria == 'Mean_Abs':
         return weights.data.abs().mean(dim=dim).gt(thresholds).type(weights.type())
